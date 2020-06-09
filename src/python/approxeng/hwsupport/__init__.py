@@ -213,10 +213,14 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
 
     # Set up configuration dict, we only add top level keys if the corresponding facility is requested
     config = {}
-    if motors: board._config[MOTORS] = {}
-    if servos: board._config[SERVOS] = {}
-    if adcs: board._config[ADCS] = {}
-    if leds: board._config[LEDS] = {}
+    if motors:
+        config[MOTORS] = {}
+    if servos:
+        config[SERVOS] = {}
+    if adcs:
+        config[ADCS] = {}
+    if leds:
+        config[LEDS] = {}
 
     # Inject mXX, motorXX, mXX_invert, and motorXX_invert properties
     for motor in motors:
@@ -250,21 +254,3 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
     # Set the supplied object's class to the newly created subclass
     board._config = config
     board.__class__ = Board
-
-
-def check_range(i):
-    """
-    Accepts a number, returns that number clamped to a range of -1.0 to 1.0, as a float
-    :param i:
-        Number
-    :return:
-        Float between -1.0 and 1.0
-    """
-    f = float(i)
-    if f < -1.0:
-        LOGGER.warning('Value < -1.0, returning -1.0')
-        return -1.0
-    if f > 1.0:
-        LOGGER.warning('Value > 1.0, returning 1.0')
-        return 1.0
-    return f

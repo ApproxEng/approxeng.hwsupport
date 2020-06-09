@@ -1,6 +1,6 @@
 import logging
 
-from approxeng.hwsupport import check_range
+from approxeng.hwsupport.util import check_range
 
 LOGGER = logging.getLogger(name='approxeng.hwsupport.servos')
 SERVOS = 'servos'

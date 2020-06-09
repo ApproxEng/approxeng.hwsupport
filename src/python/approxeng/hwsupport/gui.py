@@ -4,9 +4,9 @@ import curses
 import curses.textpad
 from math import floor
 
-DEFAULT_MOTOR_KEYS = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']']
-DEFAULT_SERVO_KEYS = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", '#']
-DEFAULT_ADC_KEYS = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/']
+DEFAULT_MOTOR_KEYS = ('q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']')
+DEFAULT_SERVO_KEYS = ('a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", '#')
+DEFAULT_ADC_KEYS = ('z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/')
 DEFAULT_TITLE = 'Approxeng.hwsupport console by @Approx_Eng'
 
 VALUE_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-']
@@ -19,7 +19,6 @@ def run_curses_gui(board, motor_keys=DEFAULT_MOTOR_KEYS, servo_keys=DEFAULT_SERV
     Build and run the GUI for the supplied board. See build_curses_gui for parameter documentation
     """
     curses.wrapper(build_curses_gui(board, motor_keys, servo_keys, adc_keys, title))
-    print(board.config_yaml)
 
 
 def build_curses_gui(board, motor_keys=DEFAULT_MOTOR_KEYS, servo_keys=DEFAULT_SERVO_KEYS, adc_keys=DEFAULT_ADC_KEYS,
@@ -46,7 +45,8 @@ def build_curses_gui(board, motor_keys=DEFAULT_MOTOR_KEYS, servo_keys=DEFAULT_SE
 
     def curses_main(screen):
         try:
-            display = DisplayState(screen=screen, board=board)
+            display = DisplayState(screen=screen, board=board, motor_keys=motor_keys, servo_keys=servo_keys,
+                                   adc_keys=adc_keys)
             curses.cbreak()
             curses.halfdelay(1)
             while True:
