@@ -16,15 +16,31 @@ class LED:
         self.led = led
         self.board = board
         self.brightness = 1.0
+        self.gamma = 1.0
+        self.saturation = 1.0
         self.hsv = (0, 0, 0)
 
     def set_colour(self, _, value):
         if isinstance(value, tuple):
             self.board.set_led_hsv(self.led, *value)
         elif value in CSS4_COLOURS:
-            self.board.set_led_hsv(self.led, CSS4_COLOURS[value])
+            self.board.set_led_hsv(self.led, *CSS4_COLOURS[value])
         else:
             LOGGER.warning(f'colour for led{self.led} is neither a triple or a colour name')
+
+    def set_gamma(self, _, value):
+        self.gamma = float(value)
+        self.board._update_led(self)
+
+    def get_gamma(self, _):
+        return self.gamma
+
+    def set_saturation(self, _, value):
+        self.saturation = float(value)
+        self.board._update_led(self)
+
+    def get_saturation(self, _):
+        return self.saturation
 
     def set_colour_rgb(self, _, value):
         if isinstance(value, tuple) and len(value) == 3:
@@ -82,4 +98,7 @@ class SetLEDsMixin:
 
     def _update_led(self, config):
         h, s, v = config.hsv
-        self._set_led_rgb(*colorsys.hsv_to_rgb(h, s, v * config.brightness))
+        v = v * config.brightness
+        s = s ** (1 / config.saturation) if config.saturation > 0 else 0
+        r, g, b = colorsys.hsv_to_rgb(h, s, v)
+        self._set_led_rgb(config.led, r ** config.gamma, g ** config.gamma, b ** config.gamma)

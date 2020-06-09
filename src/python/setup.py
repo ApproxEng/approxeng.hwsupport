@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='approxeng.hwsupport',
-    version='0.1.5',
+    version='0.1.7',
     author='Tom Oinn',
     author_email='tomoinn@gmail.com',
     url='https://github.com/ApproxEng/approxeng.hwsupport',

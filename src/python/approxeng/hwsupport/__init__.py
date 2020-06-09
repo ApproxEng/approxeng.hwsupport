@@ -245,11 +245,14 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
         setattr(Board, f'adc{adc}', property(fget=a.get_value))
         setattr(Board, f'adc{adc}_divisor', property(fset=a.set_divisor, fget=a.get_divisor))
 
+    # Inject ledXX, ledXX_brightness, ledXX_gamma, and ledXX_saturation properties
     for led in leds:
         l = LED(led=led, board=board)
         config[LEDS][led] = l
         setattr(Board, f'led{led}', property(fget=l.get_colour, fset=l.set_colour))
         setattr(Board, f'led{led}_brightness', property(fget=l.get_brightness, fset=l.set_brightness))
+        setattr(Board, f'led{led}_gamma', property(fget=l.get_gamma, fset=l.set_gamma))
+        setattr(Board, f'led{led}_saturation', property(fget=l.get_saturation, fset=l.set_saturation))
 
     # Set the supplied object's class to the newly created subclass
     board._config = config
