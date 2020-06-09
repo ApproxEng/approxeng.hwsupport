@@ -72,6 +72,11 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
     pushed to the LED may be different to those returned from this call if brightness is not 1.0
     5. For each LED, a read / write property ledXX_brightness which can be used to set the brightness for that LED from
     0.0 to 1.0
+    6. For each LED, a read / write property ledXX_gamma which is used to apply a gamma correction function to the
+    intensity of each R, G, B chip in the LED. Gamma of 2.0 is typical, defaults to 1.0 for no correction.
+    7. For each LED, a read / write property ledXX_saturation which can be used to increase perceived saturation for
+    paler colours, this applies a power of 1/value to the saturation component of each colour set, defaults to 1.0 for
+    no correction, a value of 2 gives better pale colours when using the CSS4 colour names.
 
 
     Configuration properties are also injected, specifically a read / write property 'config' which contains the entire
@@ -129,14 +134,16 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
             """
             Used to stop all activity on a board.
 
-            If there are servos, these are disabled. If there are motors, they are set to 0 speed. Finally, if
-            the underlying board's _stop() function is called, if present, to do any additional board-specific
-            cleanup.
+            If there are servos, these are disabled. If there are motors, they are set to 0 speed. LEDs are disabled.
+            Finally, if the underlying board's _stop() function is called, if present, to do any additional
+            board-specific cleanup.
             """
             for motor in motors:
                 self.set_motor_speed(motor, 0)
             for servo in servos:
                 self.disable_servo(servo)
+            for led in leds:
+                self.set_led_hsv(led, 0, 0, 0)
             if callable(getattr(self, '_stop', None)):
                 self._stop(**kwargs)
 

@@ -6,7 +6,7 @@ servos, ADC channels, and LEDs, and provides:
 1. Property based access, read and write, to each item
 2. Per-item configuration for motors, servos, and ADC channels
 3. Range checking on inputs
-4. Colour and brightness support for RGB LEDs based on either HSV / RGB tuples or CSS4 colour names
+4. Colour, gamma, saturation correction, and brightness support for RGB LEDs based on either HSV / RGB tuples or CSS4 colour names
 4. Configuration load / save for all per-item configuration settings
 
 ## Usage
