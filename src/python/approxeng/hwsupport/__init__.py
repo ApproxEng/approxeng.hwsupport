@@ -260,6 +260,7 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
         setattr(Board, f'led{led}_brightness', property(fget=l.get_brightness, fset=l.set_brightness))
         setattr(Board, f'led{led}_gamma', property(fget=l.get_gamma, fset=l.set_gamma))
         setattr(Board, f'led{led}_saturation', property(fget=l.get_saturation, fset=l.set_saturation))
+        setattr(Board, f'led{led}_rgb', property(fget=l.get_colour_rgb, fset=l.set_colour_rgb))
 
     # Set the supplied object's class to the newly created subclass
     board._config = config
