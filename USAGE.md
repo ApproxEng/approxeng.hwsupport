@@ -1,6 +1,6 @@
 # Usage
 
-**v0.1.10**
+**v0.1.12**
 
 All hardware using the `approxeng.hwsupport` library presents a set of consistent functions and properties that you
 can use in your code. This page describes how you can use this standard API to access the specific hardware on your
@@ -231,6 +231,9 @@ board.led2_gamma = 1.9
 # Set saturation
 board.led2_saturation = 3.0
 ```
+
+See https://www.w3.org/TR/css-color-4/#named-colors for the full list of CSS4 colour names, you can use any of these
+in your LED colours.
 
 ## Discovering Capabilities
 

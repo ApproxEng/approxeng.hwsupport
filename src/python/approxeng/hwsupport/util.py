@@ -15,20 +15,34 @@ def check_range(i):
     """
     f = float(i)
     if f < -1.0:
-        LOGGER.warning('Value < -1.0, returning -1.0')
+        LOGGER.warning('check_range: Value < -1.0, returning -1.0')
         return -1.0
     if f > 1.0:
-        LOGGER.warning('Value > 1.0, returning 1.0')
+        LOGGER.warning('check_range: Value > 1.0, returning 1.0')
+        return 1.0
+    return f
+
+
+def check_positive_range(i):
+    """
+    Clamp to float range 0..1
+    """
+    f = float(i)
+    if f < 0.0:
+        LOGGER.warning('check_positive: Value < 0, returning 0')
+        return 0.0
+    if f > 1.0:
+        LOGGER.warning('check_positive: Value > 1.0, returning 1.0')
         return 1.0
     return f
 
 
 def check_positive(i):
+    """
+    Ensure positive, clamp to float range 0..
+    """
     f = float(i)
     if f < 0.0:
-        LOGGER.warning('Value < 0, returning 0')
+        LOGGER.warning('check_positive: Value < 0, returning 0')
         return 0.0
-    if f > 1.0:
-        LOGGER.warning('Value > 1.0, returning 1.0')
-        return 1.0
     return f

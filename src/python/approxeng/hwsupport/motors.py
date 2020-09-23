@@ -2,7 +2,7 @@
 
 import logging
 
-from approxeng.hwsupport.util import check_range
+from approxeng.hwsupport.util import check_range, check_positive_range
 
 LOGGER = logging.getLogger(name='approxeng.hwsupport.motors')
 MOTORS = 'motors'
@@ -52,9 +52,7 @@ class Motor:
             value = float(value)
         if value is None or not isinstance(value, float):
             raise ValueError(f'm{self.motor}_scale must be a floating point value, was {value}')
-        if not 0 < value < 1:
-            raise ValueError(f'm{self.motor}_scale must be between 0.0 and 1.0, was {value}')
-        self.scale = value
+        self.scale = check_positive_range(value)
         if self.value is not None:
             self.board.set_motor_speed(motor=self.motor, speed=self.value * self.scale)
 

@@ -4,7 +4,7 @@ import colorsys
 import logging
 
 from approxeng.hwsupport.css4_colours import CSS4_COLOURS
-from approxeng.hwsupport.util import check_positive
+from approxeng.hwsupport.util import check_positive, check_positive_range
 
 LOGGER = logging.getLogger(name='approxeng.hwsupport.leds')
 
@@ -71,7 +71,7 @@ class SetLEDsMixin:
 
     def set_led_brightness(self, led, brightness):
         config = self._check_led_index(led)
-        config.brightness = check_positive(brightness)
+        config.brightness = check_positive_range(brightness)
         self._update_led(config)
 
     def set_led_gamma(self, led, gamma):
@@ -88,8 +88,8 @@ class SetLEDsMixin:
         config = self._check_led_index(led)
         try:
             h = float(h) % 1.0
-            s = check_positive(float(s))
-            v = check_positive(float(v))
+            s = check_positive_range(float(s))
+            v = check_positive_range(float(v))
         except ValueError:
             raise ValueError('argument to set_led_hsv must be parsable as three numbers (hue, saturation, value')
         config.hsv = h, s, v
@@ -97,9 +97,9 @@ class SetLEDsMixin:
 
     def set_led_rgb(self, led, r, g, b):
         try:
-            r = check_positive(float(r))
-            g = check_positive(float(g))
-            b = check_positive(float(b))
+            r = check_positive_range(float(r))
+            g = check_positive_range(float(g))
+            b = check_positive_range(float(b))
         except ValueError:
             raise ValueError('argument to set_led_rgb must be parsable as three numbers (red, green, blue)')
         self.set_led_hsv(led, *colorsys.rgb_to_hsv(r, g, b))

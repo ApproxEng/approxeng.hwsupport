@@ -1,6 +1,6 @@
 # Harware Support
 
-**v0.1.10**
+**v0.1.12**
 
 Allows you, as an expansion board creator, to only write the minimum logic to handle your motors,
 servos, ADC channels, and LEDs, and provides:
