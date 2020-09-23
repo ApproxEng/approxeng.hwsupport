@@ -18,6 +18,16 @@ class Servo:
         self.value = None
         self.board = board
 
+    @property
+    def config(self):
+        return {'pulse_min': self.pulse_min, 'pulse_max': self.pulse_max}
+
+    @config.setter
+    def config(self, d):
+        pulse_min = d['pulse_min'] if 'pulse_min' in d else None
+        pulse_max = d['pulse_max'] if 'pulse_max' in d else None
+        self.set_config(None, (pulse_min, pulse_max))
+
     def set_value(self, _, value):
         if value is not None:
             self.board.set_servo(servo=self.servo, position=value)

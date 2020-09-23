@@ -30,6 +30,8 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
     2. For each motor, a set of properties mXX and motorXX which allow write and read of that motor's speed value.
     3. For each motor, a set of properties mXX_invert and motorXX_invert which allow for negation of all values sent
     to subsequent motor speed calls - handy if you've not quite got your wiring right first time.
+    4. For each motor, a set of properties mXX_scale and motorXX_scale which allow you to set the full scale range
+    set for subsequent calls between 0.0 for no movement ever to 1.0 for full range.
 
     For servos, the underlying board must provide a method _set_servo_pulsewidth(servo, pulse_width) accepting an int
     servo index and a desired pulse width specified in microseconds. If this method exists, and there are items in the
@@ -54,6 +56,11 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
     a floating point voltage. This voltage is calculated by dividing the raw read value by a per-adc-channel divisor.
     2. For each channel, an adcXX property which exposes the value for that channel.
     3. For each channel, an adcXX_divisor property which can be written and read to set and get the per-channel divisor
+    4. For each channel, an adcXX_cache_time property, defaulting to 0 to disable caching, interpreted as a number of
+    seconds for which reads should be cached and returned. This is particularly useful when an ADC channel is attached
+    to a very slowly changing voltage such as a battery, allowing consumers of this API to read it within a control loop
+    without creating excessive traffic to the ADC itself. It may also be necessary to prevent very rapid reads from ADC
+    hardware unable to handle this.
 
     For LEDs, the underlying board must provide a method _set_led_rgb(led, r, g, b) taking RGB values as floats from 0.0
     to 1.0. If this method exists and there are entries in the 'leds' parameter, the following are added to the driver
@@ -154,12 +161,11 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
             """
             result = {}
             if ADCS in self._config:
-                result[ADCS] = {index: a.divisor for index, a in self._config[ADCS].items()}
+                result[ADCS] = {index: a.config for index, a in self._config[ADCS].items()}
             if MOTORS in self._config:
-                result[MOTORS] = {index: {'invert': m.invert} for index, m in self._config[MOTORS].items()}
+                result[MOTORS] = {index: m.config for index, m in self._config[MOTORS].items()}
             if SERVOS in self._config:
-                result[SERVOS] = {index: {'pulse_min': s.pulse_min,
-                                          'pulse_max': s.pulse_max} for index, s in self._config[SERVOS].items()}
+                result[SERVOS] = {index: s.config for index, s in self._config[SERVOS].items()}
             return result
 
         @config.setter
@@ -168,25 +174,37 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
             Set the servo, motor, and ADC configuration from a dict
             """
             if ADCS in d and ADCS in self._config:
-                for index, divisor in d[ADCS].items():
+                for index, a in d[ADCS].items():
                     if index in self._config[ADCS]:
-                        setattr(self, f'adc{index}_divisor', divisor)
+                        self._config[ADCS][index].config = a
                     else:
                         LOGGER.warning(f'config contained ADC divisor for invalid index {index}')
             if MOTORS in d and MOTORS in self._config:
-                for index, invert in d[MOTORS].items():
+                for index, m in d[MOTORS].items():
                     if index in self._config[MOTORS]:
-                        setattr(self, f'm{index}_invert', invert)
+                        self._config[MOTORS][index].config = m
                     else:
                         LOGGER.warning(f'config contained motor invert for invalid index {index}')
             if SERVOS in d and SERVOS in self._config:
                 for index, servo in d[SERVOS].items():
                     if index in self._config[SERVOS]:
-                        pulse_min = servo['pulse_min'] if 'pulse_min' in servo else None
-                        pulse_max = servo['pulse_max'] if 'pulse_max' in servo else None
-                        setattr(self, f's{index}_config', (pulse_min, pulse_max))
+                        self._config[SERVOS][index].config = servo
                     else:
                         LOGGER.warning(f'config contained servo configuration for invalid index {index}')
+
+        def save_config(self, filename):
+            """
+            Write current configuration to the specified file
+            """
+            with open(filename, 'w') as file:
+                yaml.dump(self.config, file)
+
+        def load_config(self, filename):
+            """
+            Read configuration from the specified file
+            """
+            with open(filename) as file:
+                self.config = yaml.load(file, Loader=yaml.FullLoader)
 
         @property
         def motors(self):
@@ -212,11 +230,23 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
             return adcs
 
         @property
+        def leds(self):
+            """
+            An array of LED indices available to control
+            :return:
+            """
+            return leds
+
+        @property
         def config_yaml(self):
             """
-            Config dict as a YAML string
+            Config dict as a YAML string, set to update config from a YAML string.
             """
             return yaml.dump(self.config)
+
+        @config_yaml.setter
+        def config_yaml(self, yaml_string):
+            self.config = yaml.load(yaml_string, Loader=yaml.FullLoader)
 
     # Set up configuration dict, we only add top level keys if the corresponding facility is requested
     config = {}
@@ -231,11 +261,12 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
 
     # Inject mXX, motorXX, mXX_invert, and motorXX_invert properties
     for motor in motors:
-        m = Motor(motor=motor, invert=False, board=board)
+        m = Motor(motor=motor, invert=False, scale=1.0, board=board)
         config['motors'][motor] = m
         for prefix in ['m', 'motor']:
             setattr(Board, f'{prefix}{motor}', property(fget=m.get_value, fset=m.set_value))
             setattr(Board, f'{prefix}{motor}_invert', property(fset=m.set_invert, fget=m.get_invert))
+            setattr(Board, f'{prefix}{motor}_scale', property(fset=m.set_scale, fget=m.get_scale))
 
     # Inject sXX, servoXX, sXX_config, and servoXX_config properties
     for servo in servos:
@@ -247,10 +278,11 @@ def add_properties(board, motors=None, servos=None, adcs=None, default_adc_divis
 
     # Inject adcXX and adcXX_divisor properties
     for adc in adcs:
-        a = ADC(adc=adc, divisor=default_adc_divisor, board=board)
+        a = ADC(adc=adc, divisor=default_adc_divisor, cache_time=0, board=board)
         config[ADCS][adc] = a
         setattr(Board, f'adc{adc}', property(fget=a.get_value))
         setattr(Board, f'adc{adc}_divisor', property(fset=a.set_divisor, fget=a.get_divisor))
+        setattr(Board, f'adc{adc}_cache_time', property(fset=a.set_cache_time, fget=a.get_cache_time))
 
     # Inject ledXX, ledXX_brightness, ledXX_gamma, and ledXX_saturation properties
     for led in leds:

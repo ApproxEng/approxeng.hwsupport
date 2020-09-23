@@ -29,15 +29,13 @@ class LED:
             LOGGER.warning(f'colour for led{self.led} is neither a triple or a colour name')
 
     def set_gamma(self, _, value):
-        self.gamma = float(value)
-        self.board._update_led(self)
+        self.board.set_led_gamma(self.led, value)
 
     def get_gamma(self, _):
         return self.gamma
 
     def set_saturation(self, _, value):
-        self.saturation = float(value)
-        self.board._update_led(self)
+        self.board.set_led_saturation(self.led, value)
 
     def get_saturation(self, _):
         return self.saturation
@@ -74,6 +72,16 @@ class SetLEDsMixin:
     def set_led_brightness(self, led, brightness):
         config = self._check_led_index(led)
         config.brightness = check_positive(brightness)
+        self._update_led(config)
+
+    def set_led_gamma(self, led, gamma):
+        config = self._check_led_index(led)
+        config.gamma = check_positive(gamma)
+        self._update_led(config)
+
+    def set_led_saturation(self, led, saturation):
+        config = self._check_led_index(led)
+        config.saturation = check_positive(saturation)
         self._update_led(config)
 
     def set_led_hsv(self, led, h, s, v):

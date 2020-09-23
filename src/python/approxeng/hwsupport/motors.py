@@ -13,14 +13,26 @@ class Motor:
     Holds configuration for a motor. You won't use this class directly.
     """
 
-    def __init__(self, motor, invert, board):
+    def __init__(self, motor, invert, scale, board):
         self.motor = motor
         self.invert = invert
+        self.scale = scale
         self.board = board
         self.value = None
 
+    @property
+    def config(self):
+        return {'invert': self.invert, 'scale': self.scale}
+
+    @config.setter
+    def config(self, d):
+        if 'invert' in d:
+            self.set_invert(None, d['invert'])
+        if 'scale' in d:
+            self.set_scale(None, d['scale'])
+
     def set_value(self, _, value):
-        self.board.set_motor_speed(motor=self.motor, speed=value)
+        self.board.set_motor_speed(motor=self.motor, speed=value * self.scale)
 
     def get_value(self, _):
         return self.value
@@ -30,10 +42,24 @@ class Motor:
             raise ValueError(f'm{self.motor}_invert must be True|False, was {value}')
         self.invert = value
         if self.value is not None:
-            self.board.set_motor_speed(motor=self.motor, speed=self.value)
+            self.board.set_motor_speed(motor=self.motor, speed=self.value * self.scale)
 
     def get_invert(self, _):
         return self.invert
+
+    def set_scale(self, _, value):
+        if value is not None and isinstance(value, int):
+            value = float(value)
+        if value is None or not isinstance(value, float):
+            raise ValueError(f'm{self.motor}_scale must be a floating point value, was {value}')
+        if not 0 < value < 1:
+            raise ValueError(f'm{self.motor}_scale must be between 0.0 and 1.0, was {value}')
+        self.scale = value
+        if self.value is not None:
+            self.board.set_motor_speed(motor=self.motor, speed=self.value * self.scale)
+
+    def get_scale(self, _):
+        return self.scale
 
 
 class SetMotorsMixin:

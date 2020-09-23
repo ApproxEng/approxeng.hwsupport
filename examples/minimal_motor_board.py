@@ -81,3 +81,4 @@ b.led1 = 'pink'
 b.servo0_config = 700, 1000
 b.s0 = 1
 print(b.config)
+b.stop()
